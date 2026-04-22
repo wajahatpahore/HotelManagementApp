@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, Button, StyleSheet, Alert, TextInput } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
@@ -27,14 +27,20 @@ export default function ReservationScreen({ route, navigation }) {
       // 1. Conflict Check for Future Dates
       const q = query(
         collection(db, "Bookings"),
-        where("roomNumber", "==", roomNumber.toString()),
-        where("checkInDate", ">=", reservationDate),
-        where("checkInDate", "<", nextDay),
-        where("status", "in", ["Reserved", "Active"]) 
+        where("roomNumber", "==", roomNumber.toString())
       );
       
       const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
+      const hasConflict = querySnapshot.docs.some((docSnap) => {
+        const booking = docSnap.data();
+        const bookingStatus = booking.status;
+        const bookingDate = booking.checkInDate?.toDate ? booking.checkInDate.toDate() : new Date(booking.checkInDate);
+        const bookingDateOnly = new Date(bookingDate);
+        bookingDateOnly.setHours(0, 0, 0, 0);
+        return (bookingStatus === 'Reserved' || bookingStatus === 'Active') && bookingDateOnly >= reservationDate && bookingDateOnly < nextDay;
+      });
+
+      if (hasConflict) {
         Alert.alert("Conflict", "This room is already reserved for this date.");
         return;
       }
