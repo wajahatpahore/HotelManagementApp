@@ -29,12 +29,18 @@ export default function HousekeepingScreen() {
   const updateStatus = async (roomID, currentStatus) => {
     const nextStatus = currentStatus === 'Dirty' ? 'Cleaning' : 'Available';
     const roomRef = doc(db, "Rooms", roomID?.toString());
+    const updatePayload = {
+      status: nextStatus,
+      updatedAt: new Date(),
+      lastUpdated: new Date()
+    };
+
+    if (nextStatus === 'Available') {
+      updatePayload.currentBookingID = null;
+    }
 
     try {
-      await updateDoc(roomRef, { 
-        status: nextStatus,
-        updatedAt: new Date()
-      });
+      await updateDoc(roomRef, updatePayload);
       Alert.alert("Status Updated", `Room is now ${nextStatus}`);
     } catch (error) {
       console.error("Status update error:", error);

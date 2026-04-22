@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert, Text } from 'react-native';
 import { db } from '../firebaseConfig';
-import { collection, addDoc, doc, updateDoc, getDoc, runTransaction } from 'firebase/firestore';
+import { collection, doc, runTransaction } from 'firebase/firestore';
 
 export default function CheckInScreen({ route, navigation }) {
   const { roomID, roomNumber } = route.params; // Passed from Dashboard
@@ -13,8 +13,17 @@ export default function CheckInScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleSecureCheckIn = async () => {
-  if (!guestName || !guestContact || !days) {
-    Alert.alert("Validation Error", "Please fill in all fields");
+  const trimmedGuestName = guestName.trim();
+  const trimmedGuestContact = guestContact.trim();
+  const parsedDays = parseInt(days, 10);
+
+  if (!roomIDString) {
+    Alert.alert("Validation Error", "Room ID is missing.");
+    return;
+  }
+
+  if (!trimmedGuestName || !trimmedGuestContact || !Number.isFinite(parsedDays) || parsedDays < 1) {
+    Alert.alert("Validation Error", "Please enter a valid guest name, contact, and number of days.");
     return;
   }
 
@@ -41,20 +50,23 @@ export default function CheckInScreen({ route, navigation }) {
       const now = new Date();
       
       transaction.set(newBookingRef, {
-        guestName,
-        guestContact,
-        roomNumber,
+        guestName: trimmedGuestName,
+        guestContact: trimmedGuestContact,
+        roomNumber: roomNumber?.toString(),
         checkInDate: now,
-        checkOutDate: new Date(now.getTime() + parseInt(days) * 24 * 60 * 60 * 1000),
+        checkOutDate: new Date(now.getTime() + parsedDays * 24 * 60 * 60 * 1000),
         status: "Active",
         createdAt: now,
         updatedAt: now,
-        totalAmount: 0
+        totalAmount: 0,
+        room: roomRef
       });
 
       transaction.update(roomRef, {
         status: "Occupied",
-        currentBookingID: newBookingRef.id
+        currentBookingID: newBookingRef.id,
+        updatedAt: now,
+        lastUpdated: now
       });
     });
 

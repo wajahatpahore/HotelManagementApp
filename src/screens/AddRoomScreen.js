@@ -2,31 +2,33 @@ import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; // Install: npx expo install @react-navigation/native
 import { db } from '../firebaseConfig';
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function AddRoomScreen({ navigation }) {
   const [roomNumber, setRoomNumber] = useState('');
   const [roomType, setRoomType] = useState('Standard');
 
   const handleAddRoom = async () => {
-    if (!roomNumber) {
+    const trimmedRoomNumber = roomNumber.trim();
+
+    if (!trimmedRoomNumber) {
       Alert.alert("Error", "Please enter a room number.");
       return;
     }
 
     try {
       // Reference to the Rooms collection with Room Number as Document ID
-      const timestamp = new Date();
-      await setDoc(doc(db, "Rooms", roomNumber), {
-        roomNumber: roomNumber,
+      await setDoc(doc(db, "Rooms", trimmedRoomNumber), {
+        roomNumber: trimmedRoomNumber,
         type: roomType,
         status: "Available",
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        currentBookingID: null
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        currentBookingID: null,
+        lastUpdated: serverTimestamp()
       });
 
-      Alert.alert("Success", `Room ${roomNumber} added!`);
+      Alert.alert("Success", `Room ${trimmedRoomNumber} added!`);
       setRoomNumber(''); // Clear input
     } catch (error) {
       Alert.alert("DB Error", error.message);

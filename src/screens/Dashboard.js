@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { db } from '../firebaseConfig';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { useAutomatedTriggers } from './useAutomatedTriggers';
@@ -37,10 +37,25 @@ export default function Dashboard({ navigation }) {
     }
   };
 
+  const handleRoomPress = (item) => {
+    if (item.status === 'Available') {
+      navigation.navigate('CheckIn', { roomID: item.id?.toString(), roomNumber: item.roomNumber?.toString() });
+      return;
+    }
+
+    if (item.status === 'Dirty' || item.status === 'Cleaning') {
+      navigation.navigate('HouseKeeping');
+      return;
+    }
+
+    Alert.alert('Room Occupied', `Room ${item.roomNumber} is currently occupied.`);
+  };
+
   const renderRoom = ({ item }) => (
     <TouchableOpacity 
       style={[styles.tile, { backgroundColor: getStatusColor(item.status) }]}
-      onPress={() => navigation.navigate('CheckIn', { roomID: item.id?.toString(), roomNumber: item.roomNumber?.toString() })}
+      onPress={() => handleRoomPress(item)}
+      onLongPress={() => navigation.navigate('Reservation', { roomNumber: item.roomNumber?.toString() })}
     >
       <Text style={styles.roomNum}>{item.roomNumber}</Text>
       <Text style={styles.roomType}>{item.type}</Text>
@@ -51,6 +66,14 @@ export default function Dashboard({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Hotel Status Dashboard</Text>
+      <View style={styles.actionsRow}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('AddRoom')}>
+          <Text style={styles.actionText}>Add Room</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('HouseKeeping')}>
+          <Text style={styles.actionText}>Housekeeping</Text>
+        </TouchableOpacity>
+      </View>
       
       {error ? (
         <View style={styles.errorBox}>
@@ -75,6 +98,9 @@ export default function Dashboard({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10, backgroundColor: '#f5f6fa' },
   header: { fontSize: 22, fontWeight: 'bold', marginVertical: 15, textAlign: 'center' },
+  actionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, gap: 10 },
+  actionButton: { flex: 1, backgroundColor: '#2c3e50', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
+  actionText: { color: '#fff', fontWeight: '600' },
   errorBox: { backgroundColor: '#fff3cd', borderLeftWidth: 4, borderLeftColor: '#ff9800', padding: 15, marginBottom: 15, borderRadius: 5 },
   errorText: { color: '#856404', fontSize: 13, fontWeight: '500' },
   noData: { textAlign: 'center', color: '#666', marginTop: 20, fontSize: 16 },

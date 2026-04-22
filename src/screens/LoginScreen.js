@@ -11,21 +11,24 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     setError('');
+    const trimmedEmail = email.trim();
     
-    if (!email || !password) {
+    if (!trimmedEmail || !password) {
       setError('Please enter both email and password');
       return;
     }
     
     setLoading(true);
     try {
-      console.log('Attempting login with:', email);
-      await signInWithEmailAndPassword(auth, email, password);
+      console.log('Attempting login with:', trimmedEmail);
+      await signInWithEmailAndPassword(auth, trimmedEmail, password);
       setLoading(false);
       navigation.replace('Dashboard');
     } catch (err) {
       setLoading(false);
-      const errorMsg = err.message || 'Login failed';
+      let errorMsg = err.message || 'Login failed';
+      if (err.code === 'auth/invalid-email') errorMsg = 'Please enter a valid email address.';
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') errorMsg = 'Incorrect email or password.';
       console.log('Login Error:', errorMsg);
       setError(errorMsg);
     }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 
@@ -16,8 +16,10 @@ export default function RegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     setError('');
-    
-    if (!email || !password || !confirmPassword || !name) {
+    const trimmedEmail = email.trim();
+    const trimmedName = name.trim();
+
+    if (!trimmedEmail || !password || !confirmPassword || !trimmedName) {
       setError('Please fill in all fields');
       return;
     }
@@ -34,25 +36,29 @@ export default function RegisterScreen({ navigation }) {
 
     setLoading(true);
     try {
-      console.log('Creating user with email:', email);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Creating user with email:', trimmedEmail);
+      const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
       const user = userCredential.user;
       
       console.log('User created:', user.uid);
       
       // Save user info to Firestore
       await setDoc(doc(db, "Users", user.uid), {
-        name: name,
-        email: email,
+        name: trimmedName,
+        email: trimmedEmail,
         role: role
       });
       
+      await signOut(auth);
       console.log('User saved to Firestore');
       setLoading(false);
       navigation.replace('Login');
     } catch (err) {
       setLoading(false);
-      const errorMsg = err.message || 'Registration failed';
+      let errorMsg = err.message || 'Registration failed';
+      if (err.code === 'auth/email-already-in-use') errorMsg = 'This email is already registered. Please log in instead.';
+      if (err.code === 'auth/invalid-email') errorMsg = 'Please enter a valid email address.';
+      if (err.code === 'auth/weak-password') errorMsg = 'Password must be at least 6 characters.';
       console.log('Registration Error:', errorMsg);
       setError(errorMsg);
     }
