@@ -5,26 +5,40 @@ import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/f
 
 export default function HousekeepingScreen() {
   const [dirtyRooms, setDirtyRooms] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Only fetch rooms that need attention (Dirty or Cleaning)
-    const q = query(collection(db, "Rooms"), where("status", "in", ["Dirty", "Cleaning"]));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setDirtyRooms(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-    return () => unsubscribe();
+    try {
+      // Only fetch rooms that need attention (Dirty or Cleaning)
+      const q = query(collection(db, "Rooms"), where("status", "in", ["Dirty", "Cleaning"]));
+      
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        setDirtyRooms(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setError('');
+      }, (err) => {
+        console.error("Error loading dirty rooms:", err);
+        setError("Failed to load rooms: " + err.message);
+      });
+      return () => unsubscribe();
+    } catch (err) {
+      console.error("Housekeeping error:", err);
+      setError("Error: " + err.message);
+    }
   }, []);
 
   const updateStatus = async (roomID, currentStatus) => {
     const nextStatus = currentStatus === 'Dirty' ? 'Cleaning' : 'Available';
-    const roomRef = doc(db, "Rooms", roomID);
+    const roomRef = doc(db, "Rooms", roomID?.toString());
 
     try {
-      await updateDoc(roomRef, { status: nextStatus });
+      await updateDoc(roomRef, { 
+        status: nextStatus,
+        updatedAt: new Date()
+      });
       Alert.alert("Status Updated", `Room is now ${nextStatus}`);
     } catch (error) {
-      Alert.alert("Error", error.message);
+      console.error("Status update error:", error);
+      Alert.alert("Error", error.message || "Failed to update status");
     }
   };
 
@@ -48,9 +62,15 @@ export default function HousekeepingScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Housekeeping Tasks</Text>
-      {dirtyRooms.length === 0 ? (
+      {error ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
+        </View>
+      ) : null}
+      {dirtyRooms.length === 0 && !error ? (
         <Text style={styles.emptyMsg}>All rooms are currently clean! ✨</Text>
-      ) : (
+      ) : null}
+      {dirtyRooms.length > 0 && (
         <FlatList data={dirtyRooms} renderItem={renderItem} keyExtractor={item => item.id} />
       )}
     </View>
@@ -60,6 +80,8 @@ export default function HousekeepingScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#f9f9f9' },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
+  errorBox: { backgroundColor: '#fff3cd', borderLeftWidth: 4, borderLeftColor: '#ff9800', padding: 15, marginBottom: 15, borderRadius: 5 },
+  errorText: { color: '#856404', fontSize: 13, fontWeight: '500' },
   card: { backgroundColor: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, elevation: 3 },
   roomText: { fontSize: 18, fontWeight: '600' },
   statusBadge: { marginVertical: 5, fontWeight: 'bold' },

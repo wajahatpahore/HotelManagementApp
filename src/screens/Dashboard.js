@@ -40,7 +40,7 @@ export default function Dashboard({ navigation }) {
   const renderRoom = ({ item }) => (
     <TouchableOpacity 
       style={[styles.tile, { backgroundColor: getStatusColor(item.status) }]}
-      onPress={() => navigation.navigate('CheckIn', { roomID: item.id, roomNumber: item.roomNumber })}
+      onPress={() => navigation.navigate('CheckIn', { roomID: item.id?.toString(), roomNumber: item.roomNumber?.toString() })}
     >
       <Text style={styles.roomNum}>{item.roomNumber}</Text>
       <Text style={styles.roomType}>{item.type}</Text>

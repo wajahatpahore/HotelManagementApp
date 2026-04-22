@@ -11,11 +11,15 @@ export default function ReservationScreen({ route, navigation }) {
 
   const handleReserve = async () => {
     try {
+      // Set time to midnight for consistent date comparison
+      const reservationDate = new Date(date);
+      reservationDate.setHours(0, 0, 0, 0);
+      
       // 1. Conflict Check for Future Dates
       const q = query(
         collection(db, "Bookings"),
-        where("roomNumber", "==", roomNumber),
-        where("checkInDate", "==", date.toDateString()) 
+        where("roomNumber", "==", roomNumber.toString()),
+        where("checkInDate", "==", reservationDate) 
       );
       
       const querySnapshot = await getDocs(q);
@@ -24,18 +28,23 @@ export default function ReservationScreen({ route, navigation }) {
         return;
       }
 
-      // 2. Save Reservation
+      // 2. Save Reservation with proper Timestamp
       await addDoc(collection(db, "Bookings"), {
-        roomNumber,
-        checkInDate: date.toDateString(),
+        roomNumber: roomNumber.toString(),
+        checkInDate: reservationDate,
+        checkOutDate: new Date(reservationDate.getTime() + 24 * 60 * 60 * 1000),
         status: "Reserved",
-        guestName: "To Be Provided at Check-in"
+        guestName: "To Be Provided at Check-in",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        totalAmount: 0
       });
 
-      Alert.alert("Success", `Room ${roomNumber} reserved for ${date.toDateString()}`);
+      Alert.alert("Success", `Room ${roomNumber} reserved for ${reservationDate.toDateString()}`);
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Error", error.message);
+      console.error("Reservation Error:", error);
+      Alert.alert("Error", error.message || "Failed to create reservation");
     }
   };
 

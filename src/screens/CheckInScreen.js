@@ -5,13 +5,21 @@ import { collection, addDoc, doc, updateDoc, getDoc, runTransaction } from 'fire
 
 export default function CheckInScreen({ route, navigation }) {
   const { roomID, roomNumber } = route.params; // Passed from Dashboard
+  const roomIDString = roomID?.toString() || roomNumber?.toString();
   
   const [guestName, setGuestName] = useState('');
   const [guestContact, setGuestContact] = useState('');
   const [days, setDays] = useState('1');
+  const [loading, setLoading] = useState(false);
 
   const handleSecureCheckIn = async () => {
-  const roomRef = doc(db, "Rooms", roomID);
+  if (!guestName || !guestContact || !days) {
+    Alert.alert("Validation Error", "Please fill in all fields");
+    return;
+  }
+
+  setLoading(true);
+  const roomRef = doc(db, "Rooms", roomIDString);
 
   try {
     await runTransaction(db, async (transaction) => {
@@ -51,9 +59,12 @@ export default function CheckInScreen({ route, navigation }) {
     });
 
     Alert.alert("Success", "Check-in completed successfully.");
+    setLoading(false);
     navigation.goBack();
 
   } catch (e) {
+    setLoading(false);
+    console.error("Check-in error:", e);
     Alert.alert("Booking Blocked", e.toString());
   }
 };
@@ -83,7 +94,7 @@ export default function CheckInScreen({ route, navigation }) {
         onChangeText={setDays} 
       />
 
-      <Button title="Confirm Check-in" onPress={handleSecureCheckIn} color="#27ae60" />
+      <Button title={loading ? "Processing..." : "Confirm Check-in"} onPress={handleSecureCheckIn} color="#27ae60" disabled={loading} />
     </View>
   );
 }
