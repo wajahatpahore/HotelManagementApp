@@ -78,7 +78,7 @@ export default function CheckInScreen({ route, navigation }) {
         onChangeText={setDays} 
       />
 
-      <Button title="Confirm Check-in" onPress={validateAndCheckIn} color="#27ae60" />
+      <Button title="Confirm Check-in" onPress={handleSecureCheckIn} color="#27ae60" />
     </View>
   );
 }

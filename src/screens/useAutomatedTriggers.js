@@ -6,7 +6,8 @@ export const useAutomatedTriggers = () => {
   useEffect(() => {
     const runTriggers = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to midnight for date comparison
         const batch = writeBatch(db);
         let updatesFound = false;
 
