@@ -94,15 +94,3 @@ const styles = StyleSheet.create({
   roomType: { color: '#fff', fontSize: 14, opacity: 0.9 },
   statusText: { color: '#fff', fontSize: 12, fontWeight: '600', marginTop: 5 }
 });
-
-// Pseudo-logic for Status Trigger
-const today = new Date().toDateString();
-const q = query(collection(db, "Bookings"), where("checkInDate", "==", today), where("status", "==", "Reserved"));
-
-const triggerArrivals = async () => {
-  const querySnapshot = await getDocs(q);
-  querySnapshot.forEach((booking) => {
-    const roomRef = doc(db, "Rooms", booking.data().roomNumber);
-    updateDoc(roomRef, { status: "Occupied", currentBookingID: booking.id });
-  });
-};

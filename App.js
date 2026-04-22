@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import Dashboard from './src/screens/Dashboard';
@@ -9,7 +9,7 @@ import CheckInScreen from './src/screens/CheckInScreen';
 import ReservationScreen from './src/screens/ReservationScreen';
 import HouseKeepingScreen from './src/screens/HouseKeepingScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
