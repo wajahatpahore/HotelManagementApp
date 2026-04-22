@@ -1,0 +1,48 @@
+query ListAllHotels @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public as it only lists general hotel information.") {
+  hotels {
+    id
+    name
+    address
+    description
+    contactEmail
+    contactPhone
+  }
+}
+
+query GetRoomTypeDetails($id: UUID!) @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users as it only retrieves room type details.") {
+  roomType(id: $id) {
+    id
+    name
+    capacity
+    pricePerNight
+    description
+    features
+    createdAt
+    updatedAt
+  }
+}
+
+mutation CreateNewGuest($firstName: String!, $lastName: String!, $email: String!, $phoneNumber: String, $address: String) @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users for creating a new guest profile.") {
+  guest_insert(data: {
+    firstName: $firstName,
+    lastName: $lastName,
+    email: $email,
+    phoneNumber: $phoneNumber,
+    address: $address,
+    createdAt_expr: "request.time",
+    updatedAt_expr: "request.time"
+  })
+}
+
+mutation BookRoom($checkInDate: Date!, $checkOutDate: Date!, $totalAmount: Float!, $roomId: UUID!) @auth(level: USER) {
+  booking_insert(data: {
+    checkInDate: $checkInDate,
+    checkOutDate: $checkOutDate,
+    totalAmount: $totalAmount,
+    status: "Pending",
+    createdAt_expr: "request.time",
+    updatedAt_expr: "request.time",
+    guestId_expr: "auth.uid",
+    roomId: $roomId
+  })
+}

@@ -1,0 +1,63 @@
+type Hotel @table {
+  name: String!
+  address: String!
+  description: String
+  contactEmail: String
+  contactPhone: String
+}
+
+type RoomType @table {
+  name: String!
+  capacity: Int!
+  pricePerNight: Float!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  description: String
+  features: [String]
+}
+
+type Room @table {
+  roomNumber: String!
+  status: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  roomType: RoomType
+  hotel: Hotel
+}
+
+type Guest @table {
+  firstName: String!
+  lastName: String!
+  email: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  phoneNumber: String
+  address: String
+}
+
+type Booking @table {
+  checkInDate: Date!
+  checkOutDate: Date!
+  totalAmount: Float!
+  status: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  specialRequests: String
+  guest: Guest
+  room: Room
+}
+
+type Amenity @table {
+  name: String!
+  description: String
+}
+
+type HotelAmenity @table(key: ["hotel", "amenity"]) {
+  hotel: Hotel!
+  amenity: Amenity!
+}
+
+type RoomTypeAmenity @table(key: ["roomType", "amenity"]) {
+  roomType: RoomType!
+  amenity: Amenity!
+}
