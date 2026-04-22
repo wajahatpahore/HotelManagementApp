@@ -18,9 +18,12 @@ type RoomType @table {
 
 type Room @table {
   roomNumber: String!
+  type: String
   status: String!
   createdAt: Timestamp!
   updatedAt: Timestamp!
+  currentBookingID: String
+  lastUpdated: Timestamp
   roomType: RoomType
   hotel: Hotel
 }
@@ -36,9 +39,12 @@ type Guest @table {
 }
 
 type Booking @table {
-  checkInDate: Date!
-  checkOutDate: Date!
-  totalAmount: Float!
+  guestName: String
+  guestContact: String
+  roomNumber: String
+  checkInDate: Timestamp!
+  checkOutDate: Timestamp
+  totalAmount: Float
   status: String!
   createdAt: Timestamp!
   updatedAt: Timestamp!

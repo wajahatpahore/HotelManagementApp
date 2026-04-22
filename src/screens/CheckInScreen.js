@@ -30,13 +30,18 @@ export default function CheckInScreen({ route, navigation }) {
 
       // If Available, proceed with updates
       const newBookingRef = doc(collection(db, "Bookings"));
+      const now = new Date();
       
       transaction.set(newBookingRef, {
         guestName,
         guestContact,
         roomNumber,
-        checkInDate: new Date(),
-        status: "Active"
+        checkInDate: now,
+        checkOutDate: new Date(now.getTime() + parseInt(days) * 24 * 60 * 60 * 1000),
+        status: "Active",
+        createdAt: now,
+        updatedAt: now,
+        totalAmount: 0
       });
 
       transaction.update(roomRef, {

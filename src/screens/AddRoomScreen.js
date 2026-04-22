@@ -16,10 +16,13 @@ export default function AddRoomScreen({ navigation }) {
 
     try {
       // Reference to the Rooms collection with Room Number as Document ID
+      const timestamp = new Date();
       await setDoc(doc(db, "Rooms", roomNumber), {
         roomNumber: roomNumber,
         type: roomType,
-        status: "Available", // Default state
+        status: "Available",
+        createdAt: timestamp,
+        updatedAt: timestamp,
         currentBookingID: null
       });
 
