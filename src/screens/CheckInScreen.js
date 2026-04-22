@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert, Text } from 'react-native';
 import { db } from '../firebaseConfig';
-import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
-import { doc, getDoc, runTransaction } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, getDoc, runTransaction } from 'firebase/firestore';
 
 export default function CheckInScreen({ route, navigation }) {
   const { roomID, roomNumber } = route.params; // Passed from Dashboard

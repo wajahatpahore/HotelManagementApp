@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { db } from './firebaseConfig';
+import { db } from '../firebaseConfig';
 import { collection, query, where, getDocs, doc, updateDoc, writeBatch } from 'firebase/firestore';
 
 export const useAutomatedTriggers = () => {
